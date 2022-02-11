@@ -1,29 +1,29 @@
 type prob = float
 
+(* -------------------------------------------------------------------------- *)
+(* distributions *)
+
 type 'a dist = ('a * prob) list
+
+let empty_dist = []
 
 let bernoulli ~p = [(1, p); (0, 1. -. p)]
 
 let sample = Fun.id
 
-let magic = Obj.magic
+let print_dist print_val dist =
+  List.iter
+    (fun (v, score) -> Printf.printf "S(%s) = %f\n" (print_val v) score)
+    dist
+
+(* -------------------------------------------------------------------------- *)
+(* programs *)
 
 type ('a, 'b) program =
   | Return of 'b
   | Assume of (bool * ('a, 'b) program)
+  | Factor of (prob * ('a, 'b) program)
   | Sample of ('a dist * ('a -> ('a, 'b) program))
-
-let funny_bernoulli () =
-  Sample
-    ( sample (bernoulli ~p:0.5)
-    , fun a ->
-        Sample
-          ( sample (bernoulli ~p:0.5)
-          , fun b ->
-              Sample
-                ( sample (bernoulli ~p:0.5)
-                , fun (c : int) -> Assume (a = 1 || b = 1, Return (a + b + c))
-                ) ) )
 
 let factor_dist score dist =
   List.map (fun (v, score') -> (v, score *. score')) dist
@@ -53,19 +53,41 @@ let rec infer program =
   | Sample (dist, continuation) ->
       combine_dist
         (List.map
-           (fun (v, score) -> factor_dist score (infer (continuation v)))
+           (fun (v, score) ->
+             if score = 0. then []
+             else factor_dist score (infer (continuation v)) )
            dist )
   | Assume (cond, program) ->
       if cond then infer program else []
+  | Factor (score, program) ->
+      factor_dist score (infer program)
 
 let ( let* ) x f = Sample (x, f)
 
 let assume cond prog = Assume (cond, prog)
 
-let funny_bernoulli () =
+let factor score prog = Factor (score, prog)
+
+let return v = Return v
+
+let funny_bernoulli_ugly =
+  Sample
+    ( sample (bernoulli ~p:0.5)
+    , fun a ->
+        Sample
+          ( sample (bernoulli ~p:0.5)
+          , fun b ->
+              Sample
+                ( sample (bernoulli ~p:0.5)
+                , fun (c : int) -> Assume (a = 1 || b = 1, Return (a + b + c))
+                ) ) )
+
+let funny_bernoulli =
   let* a = sample (bernoulli ~p:0.5) in
-  assume (a = 2)
-  @@ let* b = sample (bernoulli ~p:0.5) in
-     assume (b = 2)
-     @@ let* c = sample (bernoulli ~p:0.5) in
-        assume (a = 1 || b = 1) (Return (a + b + c))
+  let* b = sample (bernoulli ~p:0.5) in
+  let* c = sample (bernoulli ~p:0.5) in
+  assume (a = 1 || b = 1) (return (a + b + c))
+
+let d : int dist = infer funny_bernoulli
+
+let () = print_dist string_of_int d
