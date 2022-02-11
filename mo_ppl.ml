@@ -19,11 +19,11 @@ let print_dist print_val dist =
 (* -------------------------------------------------------------------------- *)
 (* programs *)
 
-type ('a, 'b) program =
-  | Return of 'b
-  | Assume of (bool * ('a, 'b) program)
-  | Factor of (prob * ('a, 'b) program)
-  | Sample of ('a dist * ('a -> ('a, 'b) program))
+type 'a program =
+  | Return : 'a -> 'a program
+  | Assume : (bool * 'a program) -> 'a program
+  | Factor : (prob * 'a program) -> 'a program
+  | Sample : ('a dist * ('a -> 'b program)) -> 'b program
 
 let factor_dist score dist =
   List.map (fun (v, score') -> (v, score *. score')) dist
