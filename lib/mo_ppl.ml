@@ -62,6 +62,9 @@ let rec infer program =
   | Factor (score, program) ->
       factor_dist score (infer program)
 
+(* -------------------------------------------------------------------------- *)
+(* program constructors *)
+
 let ( let* ) x f = Sample (x, f)
 
 let assume cond prog = Assume (cond, prog)
@@ -70,24 +73,4 @@ let factor score prog = Factor (score, prog)
 
 let return v = Return v
 
-let funny_bernoulli_ugly =
-  Sample
-    ( sample (bernoulli ~p:0.5)
-    , fun a ->
-        Sample
-          ( sample (bernoulli ~p:0.5)
-          , fun b ->
-              Sample
-                ( sample (bernoulli ~p:0.5)
-                , fun (c : int) -> Assume (a = 1 || b = 1, Return (a + b + c))
-                ) ) )
 
-let funny_bernoulli =
-  let* a = sample (bernoulli ~p:0.5) in
-  let* b = sample (bernoulli ~p:0.5) in
-  let* c = sample (bernoulli ~p:0.5) in
-  assume (a = 1 || b = 1) (return (a + b + c))
-
-let d : int dist = infer funny_bernoulli
-
-let () = print_dist string_of_int d
