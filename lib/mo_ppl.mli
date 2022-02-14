@@ -13,36 +13,16 @@
     them, add the following instead :
     [module Program : module type of Program]. *)
 
-type prob = float
+module Prob : module type of Prob
 
-type 'a dist = ('a * prob) list
+module Dist : module type of Dist
 
-val empty_dist : 'a list
+module Model : module type of Model
 
-val bernoulli : p:float -> (int * float) list
+type prob = Prob.t
 
-val sample : 'a -> 'a
+type 'a dist = 'a Dist.t
 
-val print_dist : ('a -> string) -> ('a * float) list -> unit
+type 'a model = 'a Model.t
 
-type 'a program =
-  | Return : 'a -> 'a program
-  | Assume : (bool * 'a program) -> 'a program
-  | Factor : (prob * 'a program) -> 'a program
-  | Sample : ('a dist * ('a -> 'b program)) -> 'b program
-
-val factor_dist : float -> ('a * float) list -> ('a * float) list
-
-val list_of_hashtbl : ('a, 'b) Hashtbl.t -> ('a * 'b) list
-
-val combine_dist : ('a * float) list list -> ('a * float) list
-
-val infer : 'a program -> ('a * float) list
-
-val ( let* ) : 'a dist -> ('a -> 'b program) -> 'b program
-
-val assume : bool -> 'a program -> 'a program
-
-val factor : prob -> 'a program -> 'a program
-
-val return : 'a -> 'a program
+val infer : 'a model -> 'a dist
