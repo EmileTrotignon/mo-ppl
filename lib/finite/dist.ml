@@ -2,7 +2,9 @@ open Utils
 
 type 'a t = ('a * Prob.t) array
 
-let bernoulli ~p = [|(1, p); (0, 1. -. p)|]
+let bernoulli_int ~p = [|(1, p); (0, 1. -. p)|]
+
+let bernoulli ~p = [|(true, p); (false, 1. -. p)|]
 
 let to_string print_val dist =
   dist
@@ -20,14 +22,11 @@ let draw d =
   in
   loop (n - 1) (Random.float 1.)
 
-let prob d v = (Array.assoc_exn ~key:v d)
+let prob d v = Array.assoc_exn ~key:v d
 
 let of_sdist sd =
   let sd = Array.map_snd exp sd in
   let total = Array.fold_left_snd ( +. ) 0. sd in
   Array.map_snd (fun e -> e /. total) sd
-
-
-
 
 let to_sdist = Fun.id

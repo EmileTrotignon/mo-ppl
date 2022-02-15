@@ -2,7 +2,7 @@
 
 (* -------------------------------------------------------------------------- *)
 type 'a t =
-  | D of 'a Discrete.Sdist.t
+  | F of 'a Finite.Sdist.t
   | C of {sample: unit -> 'a; logpdf: 'a -> float}
 
 (* -------------------------------------------------------------------------- *)
@@ -10,12 +10,12 @@ type 'a t =
 (* let sample = function D d -> Discrete.Dist.draw d | C {sample; _} -> sample () *)
 
 let logpdf v = function
-  | D d ->
-      log (Discrete.Sdist.score d v)
+  | F d ->
+      log (Finite.Sdist.score d v)
   | C {logpdf; _} ->
       logpdf v
 
-let of_discrete d = D d
+let of_finite d = F d
 
 let uniform ~lo ~hi =
   C

@@ -1,2 +1,2 @@
-module Discrete = Discrete
+module Finite = Finite
 module Continuous = Continuous
