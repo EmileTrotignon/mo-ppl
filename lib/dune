@@ -1,2 +1,3 @@
 (library
- (name mo_ppl))
+ (name mo_ppl)
+ (libraries discrete continuous))

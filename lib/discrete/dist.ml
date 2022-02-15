@@ -29,3 +29,20 @@ let to_string print_val dist =
   |> List.map (fun (v, score) ->
          Printf.sprintf "S(%s) = %f" (print_val v) score )
   |> String.concat ", "
+
+let draw d =
+  if d = empty then
+    raise (Invalid_argument "Sampling empty discrete distribution.")
+  else
+    let rec aux d cutoff =
+      match d with
+      | [] ->
+          raise
+            (Invalid_argument
+               "Sampling discrete distribution with weights smaller than 1." )
+      | (_, p) :: d when cutoff > 0. ->
+          aux d (cutoff -. p)
+      | (v, _) :: _ ->
+          v
+    in
+    aux d (Random.float 1.)

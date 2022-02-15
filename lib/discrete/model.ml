@@ -16,3 +16,15 @@ let factor score prog = Factor (score, prog)
 let return v = Return v
 
 let sample = Fun.id
+
+let rec run = function
+  | Return v ->
+      v
+  | Sample (d, k) ->
+      let v = Dist.draw d in
+      run (k v)
+  | Assume (b, m) ->
+      assert b ;
+      run m
+  | Factor _ ->
+      raise (Invalid_argument "Model.run : factor is forbidden.")
