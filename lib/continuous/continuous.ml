@@ -1,1 +1,1 @@
-module Dist = Dist
+module Sdist = Sdist
