@@ -1,3 +1,5 @@
+open Utils
+
 type 'a t =
   | Return : 'a -> 'a t
   | Assume : (bool * 'a t) -> 'a t
@@ -42,29 +44,12 @@ let rec run_restartable = function
         ; submodel= Sample (d, fm) }
         :: ks )
 
-let rec append_n li1 n li2 =
-  if n = 0 then li2
-  else
-    match li1 with
-    | [] ->
-        raise (Invalid_argument "n must be smaller than List.length li1")
-    | e :: li1 ->
-        e :: append_n li1 (n - 1) li2
-
-let sub li i n =
-  li |> Array.of_list |> (fun li -> Array.sub li i n) |> Array.to_list
-
-let fold_right_map f init li =
-  let li = List.rev li in
-  let r, li = List.fold_left_map f init li in
-  (r, List.rev li)
-
 let keep_old_trace score score' =
   Finite.Dist.(draw @@ bernoulli ~p:(min 1. (score /. score')))
 
 let update_trace subscore trace i new_trace =
-  let prefix = sub trace 0 i in
-  fold_right_map
+  let prefix = List.sub trace 0 i in
+  List.fold_right_map
     (fun subscore old_restartable ->
       (old_restartable.update_score ~subscore, {old_restartable with subscore})
       )
