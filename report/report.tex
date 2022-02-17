@@ -48,6 +48,7 @@
 
 	We build our language in Ocaml with a library offering a recursive structure and then allow the use of syntactic sugar to improve user comfort.
 	In this section, we restrain ourselves to discrete distributions with a finite support and present our implementation of an inference method by exhaustive enumeration.
+	The use of an exhaustive enumeration of all possible executions is made possible by the fact that all supports are finite.
 	All of this is found in the ``finite'' sub-library.
 
 	\subsection{A recursive structure}
@@ -118,12 +119,13 @@ let funny_bernoulli_ugly =
 	For each $sample$ statement, we can enumerate all possible outputs (each element of the support of the distribution we sample). For each possibility we bind the value to the corresponding variable and make a recursive call.
 	Each call gives us a list of results. We then output the concatenation of all those lists.
 
-	An $assume$ that evaluates to $true$ passes on the list of result we get by evaluating its corresponding sub-model while an assume that evaluate to false returns the empty list (there are no corresponding executions).
+	An $assume$ that evaluates to $true$ passes on the list of result we get by evaluating its corresponding sub-model while an $assume$ that evaluate to false returns the empty list (there are no corresponding executions).
+	\footnote{Remark that in the case of an $assume$ that returns false we do not explore the rest of the execution.}
 
 	Likewise, $factor$ statements pass on their values while changing the scores and $return$ statement give a value together with the default score.
 
 	\begin{remark}
-	  For simple cases, this can be considered equivalent to looking at all possible results for each element in the cartesian product of the sets of possible results of all probabilistic statements in the code.
+	  For simple cases, this can be considered equivalent to looking at all possible results for each element in the cartesian product of the sets of possible results of all $sample$ statements in the code.
 	\end{remark}
 
 	\subsection{Syntactic sugar}
@@ -162,7 +164,7 @@ let funny_bernoulli_ugly =
 
 	\subsection{A first execution}
 
-	The user has access to a syntax roughly similar to the one presented in subsection \ref{subseq:sugar}.
+	The user has access to the same syntax as we presented in subsection \ref{subseq:sugar}.
 	At first, we run the probabilistic program that this defines once.
 	For each probabilistic statement we encounter, we iteratively compute the ``current score'' of the run (more on how this is done in subsection \ref{subseq:choice}).
 	If the statement is a $sample$ we also store both the current continuation and the current score for later use. \\
@@ -186,7 +188,9 @@ let funny_bernoulli_ugly =
 	The formula we use is that we keep the new trace with probability $\frac{W_{new}}{W_{old}}$. 
 	With $W_{new}$ and $W_{old}$ respectively the scores of the new and old traces. \\
 
-	We then update our hashtable with the trace we kept (more on this in subsection \ref{subseq:choice}) and iterate this step with this new trace (which can be equal to the old one).
+	If we kept the new trace we add the corresponding pair $(value, score)$ to the hashtable
+	\footnote{Please remark that a single hashtable can contain multiple pairs with the same keys and that all the pairs can still be enumerated. We do not ``lose'' anything in case of duplicates.}
+	and iterate this step with this new trace (which can be equal to the old one).
 
 	\subsection{Choices}
 	\label{subseq:choice}
@@ -194,7 +198,7 @@ let funny_bernoulli_ugly =
 	The explanation above does not say :
 	\begin{itemize}
 	  \item How to iteratively compute the score of a trace.
-	  \item How to update hashtable we updating to account for a new trace.
+	  \item How to compute the final distribution using our hashtable.
 	\end{itemize}
 
 	The answer to the first question is that we multiply 
@@ -204,18 +208,26 @@ let funny_bernoulli_ugly =
 	Both the $observe$ and $assume$ statements can be seen as specific cases of factor.
 
 	This leaves us the $sample$ statement, which gives as a score the probability associated by the sampled distribution to the value that was drawn. \\
-	\SC{I have not spoken about the alternative here because we do not allow the corresponding score combination operation.}
 
-	In most cases the answer to the second question is easy. If the precise value the trace returns is not already in the hashtable simply add it to said table with corresponding score the score of the trace.
+	In most cases the answer to the second question is easy. 
+	If the hashtable contains no two entries with the same value we can output the finite distribution that associate to each value the ccorresponding score.
 
-	However when it is already present we offer two options, neither of which give us exactly what we would like in all cases.
-	The first is to add the score of the trace with the score already present in the table.
-	The second is to compute the average of the two scores.
-	Both option are left available in our implementation. \\
-	\SC{Emile, is this right ?}
+	However when there are duplicates we offer two options, neither of which give us exactly what we would like in all cases.
+	The first is to add the scores of all pairs that have the same value.
+	The second is to compute the average of the scores.
+	Both option are left available to the user in our implementation. \\
 
 \section{The tests}
 
-\SC{Need more info}
+	We have implemented various tests and examples from the subject and class.
+	All these examples are avaiable in the bin directory and can each be executed with the command ``dune exec bin/testname.exe'', with testname the name of the relevant test. \\
 
+	In no particular order : 
+
+	\begin{itemize}
+	  \item ``coin'' implements the example seen in class where we guess the bias of a coin based on a series of tosses (assuming an uniform prior).
+	  \item ``laplace'' implements the example seen in class with the same name.
+	  \item Likewise for ``funny\_bernouilli''.
+	\end{itemize}
+	
 \end{document}
