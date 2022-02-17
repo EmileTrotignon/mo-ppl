@@ -142,7 +142,7 @@ let funny_bernoulli_ugly =
 	\end{lstlisting}
 	\caption{A reformulation of previous example with a better syntax}
 	  \label{fig:sugar}
-	\end{figure}<++>
+	\end{figure}
 
 \section{Metropolis Hasting}
 
@@ -155,15 +155,15 @@ let funny_bernoulli_ugly =
 
 	As we move to our second method of inference, Metropolis Hasting, we also start to include continuous distributions.
 	While a finite support distribution is simple enough (a list of pairs of values and probabilities), we need a slightly subtler representation for continuous distributions.
-	For our purposes, they are a pair of two functions. A function $sample$ allows to draw a value and a function $logpdf$ which is \dots the log of the probability density function of the distribution.
+	For our purposes, they are a pair of two functions. A function $sample$ allows to draw a value and a function $logpdf$ which is the log of the probability density function of the distribution.
 
 	From now on, when we speak of a distribution, we mean either a finite distribution or a continuous one. Note that these can be mixed in the same code.
 	Concretely, this means we implemented a variant type in Ocaml with a constructor for each case.
 
 	\subsection{A first execution}
 
-	The user has access to a syntax roughly similar to that presented in subsection \ref{subseq:sugar}.
-	At first, we run the probabilistic program this defines once.
+	The user has access to a syntax roughly similar to the one presented in subsection \ref{subseq:sugar}.
+	At first, we run the probabilistic program that this defines once.
 	For each probabilistic statement we encounter, we iteratively compute the ``current score'' of the run (more on how this is done in subsection \ref{subseq:choice}).
 	If the statement is a $sample$ we also store both the current continuation and the current score for later use. \\
 
@@ -179,7 +179,7 @@ let funny_bernoulli_ugly =
 	We now consider a hashtable that associates to each value we previously encountered a single score. 
 	We choose a continuation we stored at random and restart execution at this point, taking the score we stored with this continuation as the current score. 
 	All probabilistic statements following the corresponding point in the probabilistic program are encountered anew (hence all values after this point are re-sampled).
-	We also create a new list of pairs of computations and scores, different from the previous one after the continuation we started this new execution with.
+	We also create a new list of pairs of computations and scores, which differs from the previous one after the continuation with which we started this new execution.
 	This creates a new trace.
 
 	We compare the score of this new trace with the previous one and choose which one to keep.
