@@ -16,6 +16,7 @@
 
 \usepackage{xcolor}
 \newcommand\SC[1]{{\color{violet}{\it \bf Simon :} #1}}
+\newcommand\ET[1]{{\color{red}{\it \bf Emile :} #1}}
 
 \title{Project report : Probabilistic programming}
 \author{Emile Trotignon and Simon Coumes}
@@ -27,18 +28,44 @@
 
 	\subsection{Overview}
 
+	\SC{Draft phase}
+
+	We build our language in Ocaml with a library offering a recursive structure and then allow the use of syntactic sugar to improve use comfort.
+	For this first approach, we restrain ourselves to discrete distributions with a finite support. 
+	All of this is found in the ``finite'' sublibrary.
+
 	\subsection{A recursive structure}
 
+	Our approach is centered on the introduction of a ``model'' type, which we inductively defined as follows : 
+
+	  ** Logic style recursive definition. 
+	
+	Note that the construction found in our models is existential. \SC{Prettyfy}
+
+	Show snippets of example code. Assure it will be prettier.
+
+	\subsection{Recursive evaluation}
+
+	List all cases quickly. Explain main idea of cartesian product. Continuation for sample.	
 	\subsection{Syntactic sugar}
 
+	Yada. Show snippets of example code.
 
 \section{Metropolis Hasting}
 
 	\subsection{Writing continuous distributions}
 
+	A continuous distribution is either a finite distribution or a pair (sample, logpdf).
+	We implement only one mode of inference for these distributions, Metropolis Hasting.
+	This is found in the continuous sublibrary.
+
 	\subsection{General theory}
 
+	\SC{Re-discuss this first}
+
 	\subsection{We already have continuations}
+
+	Because of the way we wrote the previous logic, it can be followed loosely here while still allowing easy access to continuation.
 
 
 \section{The tests}
