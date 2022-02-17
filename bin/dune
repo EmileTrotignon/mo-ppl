@@ -1,3 +1,14 @@
 (executable
- (name main)
- (libraries mo_ppl))
+ (name laplace)
+ (modules laplace)
+ (libraries mo_ppl utils base matplotlib))
+
+(executable
+ (name coin)
+ (modules coin)
+ (libraries mo_ppl utils base matplotlib))
+
+(executable
+ (name funny_bernoulli)
+ (modules funny_bernoulli)
+ (libraries mo_ppl utils base matplotlib))
