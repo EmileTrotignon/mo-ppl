@@ -47,21 +47,21 @@ let support ?(n = 10000) d =
       Array.init n (fun _ -> sample_with_score d)
 
 let of_scores ?(shrink = false) scores =
-  let average li =
-    let n = li |> List.length |> float_of_int in
-    List.fold_left
-      (fun acc score ->
-        assert (n <> 0.) ;
-        acc +. (score /. n) )
-      0. li
-  in
   let values = Hashtbl.to_seq_keys scores in
   values
   |> Seq.map (fun value ->
          let scores = Hashtbl.find_all scores value in
-         (value, if shrink then average scores else List.hd scores) )
+         (value, if shrink then List.average scores else List.hd scores) )
   |> Array.of_seq |> Finite.Dist.of_sdist |> of_finite
 
+let map f dist =
+  match dist with
+  | F dist ->
+      F (Finite.Dist.map f dist)
+  | C _ ->
+      raise
+        (Invalid_argument
+           "Distribution is actually continuous, there is no way to map it." )
 (* -------------------------------------------------------------------------- *)
 (* Distributions *)
 
@@ -98,3 +98,5 @@ let gaussian ~mu ~sigma =
   let sample () = Owl_stats.gaussian_rvs ~mu ~sigma in
   let logpdf x = Owl_stats.gaussian_logpdf x ~mu ~sigma in
   C {sample; logpdf}
+
+let bernoulli ~p = F (Finite.Dist.bernoulli ~p)

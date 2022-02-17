@@ -16,3 +16,11 @@ let fold_right_map f init li =
   let li = rev li in
   let r, li = fold_left_map f init li in
   (r, rev li)
+
+let average li =
+  let n = li |> length |> float_of_int in
+  fold_left
+    (fun acc score ->
+      assert (n <> 0.) ;
+      acc +. (score /. n) )
+    0. li

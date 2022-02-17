@@ -35,3 +35,6 @@ let of_sdist sd =
   Array.map_snd (fun e -> e /. total) sd
 
 let to_sdist = Fun.id
+
+let map f dist =
+  Array.map_fst f dist

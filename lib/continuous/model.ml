@@ -124,6 +124,13 @@ let rec factor_while f prog =
 
 let observe dist v prog = factor (Dist.score dist v) prog
 
+let rec observe_list dist data prog =
+  match data with
+  | [] ->
+      prog
+  | v :: data ->
+      observe v dist (observe_list dist data prog)
+
 let sample_list sli fprog =
   let vli = ref [] in
   let rec aux sli fprog =

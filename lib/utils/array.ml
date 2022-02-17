@@ -2,6 +2,9 @@ include Stdlib.Array
 
 let map_snd f a = map (fun (a, b) -> (a, f b)) a
 
+let map_fst f a = map (fun (a, b) -> (f a, b)) a
+
+
 let fold_left_snd f = fold_left (fun acc (_, e) -> f acc e)
 
 let assoc a ~key =

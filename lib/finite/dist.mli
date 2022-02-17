@@ -14,3 +14,5 @@ val prob : 'a t -> 'a -> float
 val of_sdist : 'a Sdist.t -> 'a t
 
 val to_sdist : 'a t -> 'a Sdist.t
+
+val map : ('a -> 'b) -> 'a t -> 'b t
