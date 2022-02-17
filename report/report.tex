@@ -81,7 +81,7 @@
 
 	Perhaps more interesting, we can see how this can be used to define an example model (see figure \ref{fig:UglyEx}).
 	Please note that the bindings happening in samples in equation \ref{eq:1} are replace by functions here, which will be called during evaluation.
-	This approach will present multiples advantages and inconvenient in the rest of this project.
+	This approach will present multiples advantages and inconvenients in the rest of this project.
 
 	\begin{figure}[h]
 	  \centering
@@ -111,11 +111,10 @@ let funny_bernoulli_ugly =
 	\subsection{Recursive evaluation}
 
 	We now want to perform a process of inference by exhaustive enumeration.
-	This means we want to look at each possible run of the probabilistic program our code describe and compute the corresponding score, erasing all runs that fail an assume statement.
+	This means we want to look at each possible run of the probabilistic program our code describes and compute the corresponding score, avoiding all runs that fail an assume statement.
 	The result associated to a run is a pair $(value, score)$.
 
 	The recursive structure presented above allows this process to proceed recursively.
-
 	For each $sample$ statement, we can enumerate all possible outputs (each element of the support of the distribution we sample). For each possibility we bind the value to the corresponding variable and make a recursive call.
 	Each call gives us a list of results. We then output the concatenation of all those lists.
 
@@ -142,7 +141,7 @@ let funny_bernoulli_ugly =
       let* c = Dist.bernoulli_int ~p:0.5 in
       assume (a = 1 || b = 1) (return (a + b + c)))
 	\end{lstlisting}
-	\caption{A reformulation of previous example with a better syntax}
+	\caption{A reformulation of the previous example with a better syntax}
 	  \label{fig:sugar}
 	\end{figure}
 
@@ -179,18 +178,19 @@ let funny_bernoulli_ugly =
 	\subsection{Subsequent executions}
 
 	We now consider a hashtable that associates to each value we previously encountered a single score. 
-	We choose a continuation we stored at random and restart execution at this point, taking the score we stored with this continuation as the current score. 
-	All probabilistic statements following the corresponding point in the probabilistic program are encountered anew (hence all values after this point are re-sampled).
+	We choose at random a continuation we stored and restart execution at this point, taking the score we stored with this continuation as the current score. 
+	All probabilistic statements following the corresponding point in the probabilistic program are encountered anew (hence all random values after this point are re-sampled).
 	We also create a new list of pairs of computations and scores, which differs from the previous one after the continuation with which we started this new execution.
 	This creates a new trace.
 
 	We compare the score of this new trace with the previous one and choose which one to keep.
 	The formula we use is that we keep the new trace with probability $\frac{W_{new}}{W_{old}}$. 
-	With $W_{new}$ and $W_{old}$ respectively the scores of the new and old traces. \\
+	With $W_{new}$ (resp $W_{old}$) the score of the new (resp old) trace. \\
 
 	If we kept the new trace we add the corresponding pair $(value, score)$ to the hashtable
 	\footnote{Please remark that a single hashtable can contain multiple pairs with the same keys and that all the pairs can still be enumerated. We do not ``lose'' anything in case of duplicates.}
-	and iterate this step with this new trace (which can be equal to the old one).
+	.
+	We then iterate this step with the trace we kept (which can be equal to the old one).
 
 	\subsection{Choices}
 	\label{subseq:choice}
@@ -210,7 +210,7 @@ let funny_bernoulli_ugly =
 	This leaves us the $sample$ statement, which gives as a score the probability associated by the sampled distribution to the value that was drawn. \\
 
 	In most cases the answer to the second question is easy. 
-	If the hashtable contains no two entries with the same value we can output the finite distribution that associate to each value the ccorresponding score.
+	If the hashtable contains no two entries with the same value we can output the finite distribution that associates to each value the corresponding score.
 
 	However when there are duplicates we offer two options, neither of which give us exactly what we would like in all cases.
 	The first is to add the scores of all pairs that have the same value.
@@ -220,7 +220,7 @@ let funny_bernoulli_ugly =
 \section{The tests}
 
 	We have implemented various tests and examples from the subject and class.
-	All these examples are avaiable in the bin directory and can each be executed with the command ``dune exec bin/testname.exe'', with testname the name of the relevant test. \\
+	All these examples are available in the bin directory and can each be executed with the command ``dune exec bin/testname.exe'', with testname the name of the relevant test. \\
 
 	In no particular order : 
 
