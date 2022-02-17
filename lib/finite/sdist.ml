@@ -10,10 +10,6 @@ let score d v = Array.assoc_exn ~key:v d
 
 let factor score dist = Array.map (fun (v, score') -> (v, score *. score')) dist
 
-let array_of_hashtbl hashtbl =
-  Hashtbl.fold (fun key data acc -> (key, data) :: acc) hashtbl []
-  |> Array.of_list
-
 let combine dists =
   let final_dist = Hashtbl.create 256 in
   Array.iter
@@ -27,4 +23,4 @@ let combine dists =
               Hashtbl.replace final_dist value (score +. score') )
         dist )
     dists ;
-  array_of_hashtbl final_dist
+  Hashtbl.to_array final_dist

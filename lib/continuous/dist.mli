@@ -9,9 +9,7 @@ val score : 'a -> 'a t -> float
 
 val sample_with_score : 'a t -> 'a * float
 
-val of_sdist : 'a Sdist.t -> 'a t
-
-val to_sdist : 'a t -> 'a Sdist.t
+val of_sdist : 'a Finite.Sdist.t -> 'a t
 
 val support : ?n:int -> 'a t -> 'a Finite.Sdist.t
 
@@ -20,7 +18,7 @@ val of_scores : ?shrink:bool -> ('a, float) Hashtbl.t -> 'a t
 val map : ('a -> 'b) -> 'a t -> 'b t
 
 (* -------------------------------------------------------------------------- *)
-(* Concrecte distributions. *)
+(** Concrecte distributions. *)
 
 val binomial : p:float -> n:int -> int t
 

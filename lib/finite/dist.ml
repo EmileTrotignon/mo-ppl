@@ -1,6 +1,6 @@
 open Utils
 
-type 'a t = ('a * Prob.t) array
+type 'a t = ('a * float) array
 
 let bernoulli_int ~p = [|(1, p); (0, 1. -. p)|]
 
@@ -36,5 +36,4 @@ let of_sdist sd =
 
 let to_sdist = Fun.id
 
-let map f dist =
-  Array.map_fst f dist
+let map f dist = Array.map_fst f dist

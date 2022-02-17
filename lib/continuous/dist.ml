@@ -25,19 +25,7 @@ let sample_with_score d =
   let v = sample d in
   (v, score v d)
 
-let of_sdist sd =
-  match sd with
-  | Sdist.F sd ->
-      F (Finite.Dist.of_sdist sd)
-  | Sdist.(C {sample; logpdf}) ->
-      C {sample; logpdf}
-
-let to_sdist d =
-  match d with
-  | F sd ->
-      Sdist.F (Finite.Dist.to_sdist sd)
-  | C {sample; logpdf= l} ->
-      Sdist.(C {sample; logpdf= l})
+let of_sdist sd = F (Finite.Dist.of_sdist sd)
 
 let support ?(n = 10000) d =
   match d with
