@@ -26,15 +26,30 @@
 \begin{document}
 \maketitle
 
+\section{Introduction}
+
+	For this project we have chosen to implement a probabilistic inference framework as a library in Ocaml.
+	This report takes most of the base knowledge about what we do in this project for granted.
+	We try with reasonable success not to repeat too much of your own lessons back to you. 
+	Hopefuly nothing was made unclear in the process. \\
+
+	A few words about vocabulary.
+	In this document we consider sepatedly the code that is actually written and executed and the ``corresponding probabilistic program''.
+	The later is the program whose set of executions define the distributions we build.
+	In generality we can consider that the user writes code that describes a probabilistic program. 
+	This is done through the syntax we define.
+	An execution of said program is an assignment of a value to each variable that is ``sampled'' in the probabilistic program. 
+	This defines a distribution on all possible outputs of the program (which the user can skew with statements such as $assume$ and $factor$). Our goal is to compute or approximate this distribution. 
+
+
+
 \section{Discrete inference by enumeration}
 
 	\subsection{Overview}
 
-	\SC{Draft phase}
-
 	We build our language in Ocaml with a library offering a recursive structure and then allow the use of syntactic sugar to improve use comfort.
 	For this first approach, we restrain ourselves to discrete distributions with a finite support. 
-	All of this is found in the ``finite'' sublibrary.
+	All of this is found in the ``finite'' sublibrary. \\
 
 	\subsection{A recursive structure}
 
@@ -47,7 +62,7 @@
 	\end{equation}
 
 	With $e$ an expression, $b$ an expression that has type bool, $i$ an expression that has type int, $d$ an expression that has the type of a distribution, and $a$ a variable name.
-	We require that every expression be well formed with regard to free variables. ie all of their free variables are bound by the time they are encountered in the tree this forms either by normal Ocaml code or by a sample. \\
+	We require that every expression be well formed with regard to free variables. ie all of their free variables are bound either by normal Ocaml code or by a sample by the time they are encountered in the tree this forms. \\
 
 	When we move to code, this gives the AST (Abstract Syntax Tree) from figure \ref{fig:AST1}.
 	\begin{figure}[h]
@@ -56,7 +71,6 @@
 	  \caption{Type definition for finite distributions}
 	  \label{fig:AST1}
 	\end{figure}
-	
 	
 	Note that the construction found in our models is existential. \SC{Let Emile word this.}
 
@@ -99,25 +113,76 @@
 
 \section{Metropolis Hasting}
 
+	We now discuss the second method of inference we implemented, Metropos Hasting.
+	This corresponds to the ``continuous'' sublibrary of our implementation.
+	
+	Like for the previous inference methode we will not recall the general idea of the methode and will instead only describe the points of our specific approach we consider the most relevant.
+
 	\subsection{Writing continuous distributions}
 
-	As we move to our second method of inference, Metropolis Hasting, we also 
+	As we move to our second method of inference, Metropolis Hasting, we also start to include continuous distributions.
+	While a finite support distribution is simple enough (a list of pairs of values and probabilities), we need a slightly subtler representation for continuous distributions.
+	For our purposes, they are a pair of two functions. A function $sample$ allows to draw a value and a function $logpdf$ which is \dots the log of the probability density function of the distribution.
 
-	A continuous distribution is either a finite distribution or a pair (sample, logpdf).
-	We implement only one mode of inference for these distributions, Metropolis Hasting.
-	This is found in the continuous sublibrary.
+	From now on, when we speak of a distribution, we mean either a finite distribution or a continuous one. Note that these can be mixed in the same code.
+	Concretely, this means we implemented a variant type in Ocaml with a constructor for each case.
 
-	\subsection{General theory}
+	\subsection{A first execution}
 
-	\SC{Re-discuss this first}
+	The user has access to a syntax roughly similar to that presented in subsection \ref{subseq:sugar}.
+	At first, we run the probabilistic program this defines once.
+	For each probabilistic statement we encounter, we iteratively compute the ``current score'' of the run (more on how this is done in subsection \ref{subseq:choice}).
+	If the statement is a $sample$ we also store both the current continuation and the current score for later use. \\
 
-	\subsection{We already have continuations}
+	When the execution is over this leaves us with a trace of the execution (all the pairs of a continuation and a score that we computed) and with a final value and score. 
 
-	Because of the way we wrote the previous logic, it can be followed loosely here while still allowing easy access to continuation.
+	\begin{remark}
+	  Obtaining continuations is easy for us because the underlying structure of our code is still akine to the recursive definition we presented for the previous inference methode.
+	  Hence, the ``continuations'' associated to a sample were already present in our approach to begin with.
+	\end{remark}
 
+	\subsection{Subsequent executions}
+
+	We now consider a hashtable that associates to each value we previously encountered a single score. 
+	We choose a continuation we stored at random adn restart execution at this point, taking the score we stored with this continuation as the current score. 
+	All probabilistic statements following the corresponding point in the probabilistic program are encountered anew (hence all values agter this point are re-sampled).
+	We also create a new list of pairs of compuations and scores, different from the previous one after the continuation we started this new execution with.
+	This creates a new trace.
+
+	We compare the score of this new trace with the previous one and choose which one to keep.
+	The formula we use is that we keep the new trace with probability $\frac{W_{new}}{W_{old}}$. 
+	With $W_{new}$ and $W_{old}$ respectively the scores of the new and old traces. \\
+
+	We then update our hashtable with the trace we kept (more on this in subsection \ref{subseq:choice}) and iterate this step with this new trace (which can be equal to the old one).
+
+	\subsection{Choices}
+	\label{subseq:choice}
+
+	The explanation above does not say :
+	\begin{itemize}
+	  \item How to iteratively compute the score of a trace.
+	  \item How to update hashtable we updating to account for a new trace.
+	\end{itemize}
+
+	The answer to the first question is that we multiply 
+	\footnote{All our explenations ignore the fact that we instead store the log of the score to avoid rounding errors.}
+	the scores given by each probabilistic operator we encounter.
+	In the case of the $factor$ statement the associated score is straightforward. 
+	Both the $observe$ and $assume$ statements can be seen as specific cases of factor.
+
+	This leaves us the $sample$ statement, which gives as a score the probability associated by the sampled distribution to the value that was drawn. \\
+	\SC{I have not spoken about the alternative here because we do not allow the corresponding score combination operation.}
+
+	In most cases the answer to the second question is easy. If the precise value the trace returns is not already in the hashtable simply add it to said table with corresponding score the score of the trace.
+
+	However when it is already present we offer two options, neither of which give us exactly what we would like in all cases.
+	The first is to add the score of the trace with the score already present in the table.
+	The second is to compute the avarage of the two scores.
+	Both option are left avaialble in our implementation. \\
+	\SC{Emile, is this right ?}
 
 \section{The tests}
 
-\SC{Not now}
+\SC{Need more info}
 
 \end{document}
