@@ -13,6 +13,7 @@
 \usepackage{amsfonts}
 \usepackage{graphicx}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings} 
 
 \usepackage{xcolor}
 \newcommand\SC[1]{{\color{violet}{\it \bf Simon :} #1}}
@@ -31,7 +32,7 @@
 	For this project we have chosen to implement a probabilistic inference framework as a library in Ocaml.
 	This report takes most of the base knowledge about what we do in this project for granted.
 	We try with reasonable success not to repeat too much of your own lessons back to you. 
-	Hopefuly nothing was made unclear in the process. \\
+	Hopefuly nothing was made unclear as a result. \\
 
 	A few words about vocabulary.
 	In this document we consider separately the code that is actually written and executed and the ``corresponding probabilistic program''.
@@ -41,38 +42,41 @@
 	An execution of said program is an assignment of a value to each variable that is ``sampled'' in the probabilistic program. 
 	This defines a distribution on all possible outputs of the program (which the user can skew with statements such as $assume$ and $factor$). Our goal is to compute or approximate this distribution. 
 
-
-
 \section{Discrete inference by enumeration}
 
 	\subsection{Overview}
 
-	We build our language in Ocaml with a library offering a recursive structure and then allow the use of syntactic sugar to improve use comfort.
-	For this first approach, we restrain ourselves to discrete distributions with a finite support. 
-	All of this is found in the ``finite'' sub-library. \\
+	We build our language in Ocaml with a library offering a recursive structure and then allow the use of syntactic sugar to improve user comfort.
+	In this section, we restrain ourselves to discrete distributions with a finite support and present our implementation of an inference method by exhaustive enumeration.
+	All of this is found in the ``finite'' sub-library.
 
 	\subsection{A recursive structure}
 
 	Our approach is centered on the introduction of a ``model'' type, which we inductively defined as follows : 
-
-
 	\begin{equation}
 	  Model_1 ::= return \; e \; | \; (assume \; b), \; Model_2 \; | \; a = sample(d) \; in \;Model_2 \; | \;  (factor \; i), \; Model_2
 	  \label{eq:1}
 	\end{equation}
 
-	With $e$ an expression, $b$ an expression that has type bool, $i$ an expression that has type int, $d$ an expression that has the type of a distribution, and $a$ a variable name.
+	With $e$ an expression, $b$ an expression that has type bool, $i$ an expression that has type float, $d$ an expression that has the type of a distribution, and $a$ a variable name.
 	We require that every expression be well formed with regard to free variables. ie all of their free variables are bound either by normal Ocaml code or by a sample by the time they are encountered in the tree this forms. \\
 
 	When we move to code, this gives the AST (Abstract Syntax Tree) from figure \ref{fig:AST1}.
 	\begin{figure}[h]
 	  \centering
-	  \includegraphics[scale=0.7]{images/AST1.png}
+	\begin{lstlisting}[language=Mathematica,frame=single]
+       type 'a t =
+	  | Return : 'a -> 'a t
+	  | Assume : (bool * 'a t) -> 'a t
+	  | Factor : (Prob.t * 'a t) -> 'a t
+	  | Sample : ('a Dist.t * ('a -> 'b t)) -> 'b t
+    	\end{lstlisting}
+	  % \includegraphics[scale=0.7]{images/AST1.png}
 	  \caption{Type definition for finite distributions}
 	  \label{fig:AST1}
 	\end{figure}
 	
-	Note that the construction found in our models is existential. \SC{Let Emile word this.}
+	\SC{To reword : Note that the construction found in our models is existential.}
 
 	Perhaps more interesting, we can see how this can be used to define an example model (see figure \ref{fig:UglyEx}).
 	Please note that the bindings happening in samples in equation \ref{eq:1} are replace by functions here, which will be called during evaluation.
@@ -80,7 +84,23 @@
 
 	\begin{figure}[h]
 	  \centering
-	  \includegraphics[scale=0.5]{images/ExampleUgly.png}
+	\begin{lstlisting}[language=Mathematica,frame=single]
+let funny_bernoulli_ugly =
+    Model.(
+      Sample
+        ( sample (Dist.bernoulli_int ~p:0.5)
+        , fun a ->
+            Sample
+              ( sample (Dist.bernoulli_int ~p:0.5)
+              , fun b ->
+                  Sample
+                    ( sample (Dist.bernoulli_int ~p:0.5)
+                    , fun (c : int) ->
+                        Assume (a = 1 || b = 1, Return (a + b + c))))))
+
+	\end{lstlisting}
+	 
+	  %\includegraphics[scale=0.5]{images/ExampleUgly.png}
 	  \caption{A first code example with an unwieldy syntax}
 	  \label{fig:UglyEx}
 	\end{figure}
@@ -109,7 +129,20 @@
 	\subsection{Syntactic sugar}
 	\label{subseq:sugar}
 
-	\SC{Ask Emile}
+	\SC{Ask Emile, see figure \ref{fig:sugar}}
+
+	\begin{figure}[h]
+	  \centering
+	\begin{lstlisting}[language=Mathematica,frame=single]
+    Model.(
+      let* a = Dist.bernoulli_int ~p:0.5 in
+      let* b = Dist.bernoulli_int ~p:0.5 in
+      let* c = Dist.bernoulli_int ~p:0.5 in
+      assume (a = 1 || b = 1) (return (a + b + c)))
+	\end{lstlisting}
+	\caption{A reformulation of previous example with a better syntax}
+	  \label{fig:sugar}
+	\end{figure}<++>
 
 \section{Metropolis Hasting}
 
