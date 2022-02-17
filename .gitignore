@@ -4,3 +4,5 @@ report/*.aux
 report/*.log
 report/*.gz
 report/*.swp
+report/*.swo
+report/*.out
