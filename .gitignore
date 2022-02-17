@@ -1,2 +1,6 @@
 _build
 .vscode
+report/*.aux
+report/*.log
+report/*.gz
+report/*.swp
