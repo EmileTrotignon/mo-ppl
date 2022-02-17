@@ -18,6 +18,8 @@
 \newcommand\SC[1]{{\color{violet}{\it \bf Simon :} #1}}
 \newcommand\ET[1]{{\color{red}{\it \bf Emile :} #1}}
 
+\newtheorem{remark}{Remark} 
+
 \title{Project report : Probabilistic programming}
 \author{Emile Trotignon and Simon Coumes}
 
@@ -73,7 +75,23 @@
 
 	\subsection{Recursive evaluation}
 
-	List all cases quickly. Explain main idea of cartesian product. Continuation for sample.	
+	We now want to perform a process of inference by exhaustive enumeration.
+	This means we want to look at each possible run of the probabilistic program our code describe and compute the corresponding score, erasing all runs that fail an assume statement.
+	The result associated to a run is a pair $(value, score)$.
+
+	The recursive structure presented above allows this process to proceed recursively.
+
+	For each $sample$ statement, we can enumerate all possible outputs (each element of the support of the distribution we sample). For each possibility we bind the value to the corresponding variable and make a recursive call.
+	Each call gives us a list of results. We then output the concatenation of all those lists.
+
+	An $assume$ that evaluates to $true$ passes on the list of result we get by evaluating its corresponding submodel while an assume that evaluate to false returns the empty list (there are no corresponding executions).
+
+	Likewise, $factor$ statements pass on their values while changing the scores and $return$ statement give a value together with the default score.
+
+	\begin{remark}
+	  For simple cases, this can be considered equivalent to looking at all possible results for each element in the cartesian product of the sets of possible results of all probabilistic statements in the code.
+	\end{remark}
+
 	\subsection{Syntactic sugar}
 	\label{subseq:sugar}
 
