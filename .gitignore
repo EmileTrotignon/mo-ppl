@@ -6,3 +6,4 @@ report/*.gz
 report/*.swp
 report/*.swo
 report/*.out
+report/*.bak

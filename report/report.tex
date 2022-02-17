@@ -34,7 +34,7 @@
 	Hopefuly nothing was made unclear in the process. \\
 
 	A few words about vocabulary.
-	In this document we consider sepatedly the code that is actually written and executed and the ``corresponding probabilistic program''.
+	In this document we consider separately the code that is actually written and executed and the ``corresponding probabilistic program''.
 	The later is the program whose set of executions define the distributions we build.
 	In generality we can consider that the user writes code that describes a probabilistic program. 
 	This is done through the syntax we define.
@@ -49,7 +49,7 @@
 
 	We build our language in Ocaml with a library offering a recursive structure and then allow the use of syntactic sugar to improve use comfort.
 	For this first approach, we restrain ourselves to discrete distributions with a finite support. 
-	All of this is found in the ``finite'' sublibrary. \\
+	All of this is found in the ``finite'' sub-library. \\
 
 	\subsection{A recursive structure}
 
@@ -81,11 +81,11 @@
 	\begin{figure}[h]
 	  \centering
 	  \includegraphics[scale=0.5]{images/ExampleUgly.png}
-	  \caption{A first code example with an unwieldly syntax}
+	  \caption{A first code example with an unwieldy syntax}
 	  \label{fig:UglyEx}
 	\end{figure}
 
-	As shown in figure \ref{fig:UglyEx} this code is not very convenient to use. We will see in subsection \ref{subseq:sugar} how we used syntaxic sugar to improve on this.
+	As shown in figure \ref{fig:UglyEx} this code is not very convenient to use. We will see in subsection \ref{subseq:sugar} how we used syntactic sugar to improve on this.
 
 	\subsection{Recursive evaluation}
 
@@ -98,7 +98,7 @@
 	For each $sample$ statement, we can enumerate all possible outputs (each element of the support of the distribution we sample). For each possibility we bind the value to the corresponding variable and make a recursive call.
 	Each call gives us a list of results. We then output the concatenation of all those lists.
 
-	An $assume$ that evaluates to $true$ passes on the list of result we get by evaluating its corresponding submodel while an assume that evaluate to false returns the empty list (there are no corresponding executions).
+	An $assume$ that evaluates to $true$ passes on the list of result we get by evaluating its corresponding sub-model while an assume that evaluate to false returns the empty list (there are no corresponding executions).
 
 	Likewise, $factor$ statements pass on their values while changing the scores and $return$ statement give a value together with the default score.
 
@@ -113,10 +113,10 @@
 
 \section{Metropolis Hasting}
 
-	We now discuss the second method of inference we implemented, Metropos Hasting.
-	This corresponds to the ``continuous'' sublibrary of our implementation.
+	We now discuss the second method of inference we implemented, Metropolis Hasting.
+	This corresponds to the ``continuous'' sub-library of our implementation.
 	
-	Like for the previous inference methode we will not recall the general idea of the methode and will instead only describe the points of our specific approach we consider the most relevant.
+	Like for the previous inference method we will not recall the general idea of the method and will instead only describe the points of our specific approach we consider the most relevant.
 
 	\subsection{Writing continuous distributions}
 
@@ -137,16 +137,16 @@
 	When the execution is over this leaves us with a trace of the execution (all the pairs of a continuation and a score that we computed) and with a final value and score. 
 
 	\begin{remark}
-	  Obtaining continuations is easy for us because the underlying structure of our code is still akine to the recursive definition we presented for the previous inference methode.
+	  Obtaining continuations is easy for us because the underlying structure of our code is still akin to the recursive definition we presented for the previous inference method.
 	  Hence, the ``continuations'' associated to a sample were already present in our approach to begin with.
 	\end{remark}
 
 	\subsection{Subsequent executions}
 
 	We now consider a hashtable that associates to each value we previously encountered a single score. 
-	We choose a continuation we stored at random adn restart execution at this point, taking the score we stored with this continuation as the current score. 
-	All probabilistic statements following the corresponding point in the probabilistic program are encountered anew (hence all values agter this point are re-sampled).
-	We also create a new list of pairs of compuations and scores, different from the previous one after the continuation we started this new execution with.
+	We choose a continuation we stored at random and restart execution at this point, taking the score we stored with this continuation as the current score. 
+	All probabilistic statements following the corresponding point in the probabilistic program are encountered anew (hence all values after this point are re-sampled).
+	We also create a new list of pairs of computations and scores, different from the previous one after the continuation we started this new execution with.
 	This creates a new trace.
 
 	We compare the score of this new trace with the previous one and choose which one to keep.
@@ -165,7 +165,7 @@
 	\end{itemize}
 
 	The answer to the first question is that we multiply 
-	\footnote{All our explenations ignore the fact that we instead store the log of the score to avoid rounding errors.}
+	\footnote{All our explanations ignore the fact that we instead store the log of the score to avoid rounding errors.}
 	the scores given by each probabilistic operator we encounter.
 	In the case of the $factor$ statement the associated score is straightforward. 
 	Both the $observe$ and $assume$ statements can be seen as specific cases of factor.
@@ -177,8 +177,8 @@
 
 	However when it is already present we offer two options, neither of which give us exactly what we would like in all cases.
 	The first is to add the score of the trace with the score already present in the table.
-	The second is to compute the avarage of the two scores.
-	Both option are left avaialble in our implementation. \\
+	The second is to compute the average of the two scores.
+	Both option are left available in our implementation. \\
 	\SC{Emile, is this right ?}
 
 \section{The tests}
