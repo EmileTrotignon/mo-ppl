@@ -13,8 +13,12 @@
  (modules funny_bernoulli)
  (libraries mo_ppl utils base matplotlib))
 
-
 (executable
  (name risk)
  (modules risk)
  (libraries mo_ppl utils base matplotlib))
+
+(executable
+ (name Coumes)
+ (modules Coumes)
+ (libraries mo_ppl utils base matplotlib gg))
