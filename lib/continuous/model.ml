@@ -24,27 +24,32 @@ let rec run = function
 
 type 'a restartable = {score_acc: float; submodel: 'a t}
 
-let rec run_restartable ?(ignore_sample_score = false) score_acc = function
+let rec run_restartable ~ignore_sample_score score_acc trace_acc model =
+  match model with
   | Return v ->
-      (v, score_acc, [])
+      (v, score_acc, trace_acc)
   | Assume (b, model) ->
-      if b then run_restartable score_acc model
+      if b then run_restartable ~ignore_sample_score score_acc trace_acc model
       else
-        let v, score, _ = run_restartable 0. model in
+        let v, score, _ =
+          run_restartable ~ignore_sample_score 0. trace_acc model
+        in
         assert (score = 0.) ;
-        (v, 0., [])
+        (v, 0., trace_acc)
   | Factor (factor, model) ->
-      run_restartable (score_acc *. factor) model
+      run_restartable ~ignore_sample_score (score_acc *. factor) trace_acc model
   | Sample (d, fm) ->
       let v, varscore = Dist.sample_with_score d in
       let varscore = if ignore_sample_score then 1. else varscore in
-      let v, score, trace = run_restartable (score_acc *. varscore) (fm v) in
-      (v, score, {score_acc; submodel= Sample (d, fm)} :: trace)
+      run_restartable ~ignore_sample_score (score_acc *. varscore)
+        ({score_acc; submodel= model} :: trace_acc)
+        (fm v)
 
-let run_restartable ?ignore_sample_score ?(score_acc = 1.) model =
-  let v, score, trace = run_restartable ?ignore_sample_score score_acc model in
-  (* if score <> 0. then printf "S(%f) = %f\n" (Obj.magic v) score ; *)
-  (v, score, trace)
+let run_restartable ~ignore_sample_score ?(score_acc = 1.) model =
+  let v, score, trace =
+    run_restartable ~ignore_sample_score score_acc [] model
+  in
+  (v, score, List.rev trace)
 
 let keep_old_trace score score' =
   if score = 0. then
@@ -65,35 +70,44 @@ let update_trace trace i new_trace =
   trace
 
 let update_scores scores value score =
-  if score <> 0. then printf "Adding S(%f) = %f\n" (Obj.magic value) score ;
-  Hashtbl.add scores value score
+  (* if score <> 0. then printf "Adding S(_) = %f\n" (Obj.magic value) score ; *)
+  Hashtbl.replace scores value
+    (score :: Option.value ~default:[] (Hashtbl.find_opt scores value))
 
-let infer_metropolis_hasting ~n ?(step_watcher = fun _i _scores -> ()) model =
+let rec choose i lim =
+  if i + 1 < lim then
+    if Finite.Dist.(draw @@ bernoulli ~p:0.5) then i else choose (i + 1) lim
+  else i
+
+let choose lim = choose 0 lim
+
+let infer_metropolis_hasting ~n ?(shrink = false) ?(ignore_sample_score = false)
+    ?(step_watcher = fun _i _scores -> ()) model =
   let scores = Hashtbl.create 256 in
   let rec aux n trace score =
     if n = 0 then ()
     else
       let trace_length = List.length trace in
-      let i = Random.int trace_length in
+      let i = choose trace_length in
       (* printf "Rerunning variable %i\n" i ; *)
       let {score_acc; submodel} = List.nth trace i in
       let value, new_score, new_subtrace =
-        run_restartable ~ignore_sample_score:false ~score_acc submodel
+        run_restartable ~ignore_sample_score ~score_acc submodel
       in
       let new_trace = update_trace trace i new_subtrace in
       let new_trace_length = List.length new_trace in
       assert (new_trace_length <> 0) ;
       assert (trace_length <> 0) ;
-      let new_score = new_score /. float_of_int new_trace_length in
       update_scores scores value new_score ;
+      let new_score = new_score /. float_of_int new_trace_length in
       step_watcher n scores ;
       if keep_old_trace score new_score then aux (n - 1) trace score
       else aux (n - 1) new_trace new_score
   in
-  let value, score, trace = run_restartable ~ignore_sample_score:false model in
+  let value, score, trace = run_restartable ~ignore_sample_score model in
   update_scores scores value score ;
   aux n trace 0. ;
-  Dist.of_scores scores
+  Dist.of_scores ~shrink scores
 
 (* -------------------------------------------------------------------------- *)
 (* model constructors *)
@@ -136,7 +150,9 @@ let sample_list sli fprog =
   let rec aux sli fprog =
     match sli with
     | [] ->
-        fprog !vli
+        let tmp = !vli in
+        vli := [] ;
+        fprog tmp
     | d :: sli ->
         Sample
           ( d

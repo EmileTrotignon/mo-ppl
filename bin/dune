@@ -12,3 +12,9 @@
  (name funny_bernoulli)
  (modules funny_bernoulli)
  (libraries mo_ppl utils base matplotlib))
+
+
+(executable
+ (name risk)
+ (modules risk)
+ (libraries mo_ppl utils base matplotlib))

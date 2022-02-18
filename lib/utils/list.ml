@@ -17,10 +17,12 @@ let fold_right_map f init li =
   let r, li = fold_left_map f init li in
   (r, rev li)
 
-let average li =
-  let n = li |> length |> float_of_int in
+let sum li = fold_left ( +. ) 0. li
+
+(* let average li =
+  let total = sum li in
   fold_left
     (fun acc score ->
-      assert (n <> 0.) ;
-      acc +. (score /. n) )
-    0. li
+      assert (total <> 0.) ;
+      acc +. (score /. total) )
+    0. li *)

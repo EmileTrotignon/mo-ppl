@@ -6,6 +6,8 @@ let bernoulli_int ~p = [|(1, p); (0, 1. -. p)|]
 
 let bernoulli ~p = [|(true, p); (false, 1. -. p)|]
 
+let dice ~sides = Array.init sides (fun i -> (i + 1, 1. /. float_of_int sides))
+
 let to_string print_val dist =
   dist
   |> Array.map (fun (v, score) ->
@@ -25,10 +27,10 @@ let draw d =
   in
   loop (n - 1) (Random.float 1.)
 
-let prob d v = Array.assoc_exn ~key:v d
+let prob d v = Option.value ~default:0. (Array.assoc ~key:v d)
 
 let of_sdist sd =
-  let sd = Array.map_snd exp sd in
+  (* let sd = Array.map_snd exp sd in *)
   let total = Array.fold_left_snd ( +. ) 0. sd in
   printf "Normalizing with total being %f\n" total ;
   assert (total <> 0.) ;

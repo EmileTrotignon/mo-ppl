@@ -4,6 +4,7 @@ val bernoulli_int : p:float -> int t
 
 val bernoulli : p:float -> bool t
 
+val dice : sides:int -> int t
 
 val to_string : ('a -> string) -> 'a t -> string
 
