@@ -22,8 +22,8 @@ let bounce_plat_vect speed plat1 plat2 =
   match bounce_plateform vx vy xp1 yp1 xp2 yp2 with v1, v2 -> V2.v v1 v2
 
 let step pos speed accel timestep =
-  let pos = pos + V2.smul timestep speed in
-  let speed = speed + V2.smul timestep accel in
+  let pos = V2.(pos + V2.smul timestep speed) in
+  let speed = V2.(speed + V2.smul timestep accel) in
   (pos, speed)
 
 (* Detects colision with a platform *)
@@ -32,11 +32,11 @@ let touch pos plat1 plat2 =
   let vec2 = V2.sub plat1 plat2 in
   let norma_vec1 =
     let n = V2.norm vec1 in
-    V2.smul (1 /. n) vec1
+    V2.smul (1. /. n) vec1
   in
   let norma_vec2 =
     let n = V2.norm vec2 in
-    V2.smul (1 /. n) vec2
+    V2.smul (1. /. n) vec2
   in
   let dot_prod = V2.dot norma_vec1 norma_vec2 in
   let vec3 = V2.sub plat2 pos in
@@ -51,7 +51,7 @@ let touch_ground pos = V2.y pos < 0.
 (* plat11 and plat12 are the coordinates of the two borders of the first platform *)
 let rec simulate pos speed n accel goal plat11 plat12 plat21 plat22 timestep =
   if n = 0 then 1. /. 0.
-  else if touch_ground pos then Float.abs (V2.x -. goal)
+  else if touch_ground pos then Float.abs (V2.x pos -. goal)
   else
     let pos, speed = step pos speed accel timestep in
     let speed = update_if_bounce pos speed plat11 plat12 in
