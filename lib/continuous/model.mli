@@ -1,6 +1,5 @@
 type 'a t
 
-
 (* -------------------------------------------------------------------------- *)
 (** Model builders. *)
 
@@ -43,10 +42,11 @@ val run : 'a t -> 'a * float
 
 val infer_metropolis_hasting :
      n:int
-  -> ?step_watcher:(int -> ('a, float) Hashtbl.t -> unit)
+  -> ?shrink:bool
+  -> ?ignore_sample_score:bool
+  -> ?step_watcher:(int -> ('a, float list) Hashtbl.t -> unit)
   -> 'a t
   -> 'a Dist.t
 (** [infer_metropolis_hasting ~n ~step_watcher m] is the disitribution
     associated to [m], computed with [n] steps, calling [step_watcher] at each
     step (useful for understanding the behavior of the inference). *)
-

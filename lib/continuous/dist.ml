@@ -34,12 +34,10 @@ let support ?(n = 10000) d =
   | C _ ->
       Array.init n (fun _ -> sample_with_score d)
 
-let of_scores ?(shrink = false) scores =
-  let values = Hashtbl.to_seq_keys scores in
-  values
-  |> Seq.map (fun value ->
-         let scores = Hashtbl.find_all scores value in
-         (value, if shrink then List.average scores else List.hd scores) )
+let of_scores ?(shrink = false) (scores : ('a, float list) Hashtbl.t) =
+  Hashtbl.to_seq scores
+  |> Seq.map (fun (value, scores) ->
+         (value, if shrink then List.sum scores else List.hd scores) )
   |> Array.of_seq |> Finite.Dist.of_sdist |> of_finite
 
 let map f dist =
@@ -87,4 +85,6 @@ let gaussian ~mu ~sigma =
   let logpdf x = Owl_stats.gaussian_logpdf x ~mu ~sigma in
   C {sample; logpdf}
 
-let bernoulli ~p = F (Finite.Dist.bernoulli ~p)
+let bernoulli ~p = of_finite (Finite.Dist.bernoulli ~p)
+
+let dice ~sides = of_finite (Finite.Dist.dice ~sides)
