@@ -19,6 +19,6 @@
  (libraries mo_ppl utils base matplotlib))
 
 (executable
- (name Coumes)
- (modules Coumes)
+ (name ball)
+ (modules ball)
  (libraries mo_ppl utils base matplotlib gg))

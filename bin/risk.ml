@@ -107,7 +107,7 @@ let rec battle_explicit n_atk n_def =
 
 let dist =
   Model.infer_metropolis_hasting ~n:100000 ~shrink:true
-    ~ignore_sample_score:true (battle_explicit 50 50)
+    ~ignore_sample_score:true (battle 18 15)
 
 let () =
   printf "Attack won %i times\nChances of attack winning are %f, defence %f.\n"
