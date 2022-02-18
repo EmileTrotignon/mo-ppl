@@ -145,6 +145,8 @@ let rec observe_list dist data prog =
   | v :: data ->
       observe v dist (observe_list dist data prog)
 
+(* The correctness of this implementation is not obvious, you can test it by
+  tweaking [bin/risk.ml]. *)
 let sample_list sli fprog =
   let vli = ref [] in
   let rec aux sli fprog =
