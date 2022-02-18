@@ -34,7 +34,18 @@ let touch pos plat1 plat2 =
         let vec3 = Gg.sub plat2 pos in
         dot_prod > 0.9 && Gg.dot vec1 vec3 < 0. (* Detect both a flat angle and that we are "between" the two extremities *)
 
+let update_if_bounce pos speed plat1 plat2 = 
+        if touch pos plat1 plat2 then bounce_plat_vect speed plat1 plat2 else speed
+
 let touch_ground pos = Gg.y pos < 0.
 
+(* plat11 and plat12 are the coordinates of the two borders of the first platform *)
+let rec simulate pos speed n accel goal plat11 plat12 plat21 plat22 timestep = 
+        if n = 0 then 1. /. 0. else 
+        if touch_ground pos then Float.abs (Gg.x -. goal) else
+                let (pos, speed) = step pos speed accel timestep in
+                let speed = update_if_bounce pos speed plat11 plat12 in
+                let speed = update_if_bounce pos speed plat21 plat22 in
+                simulate pos speed n accel goal plat11 plat12  plat21 plat22 timestep
 
 
