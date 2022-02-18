@@ -1,31 +1,3 @@
-(* TODO solve third degree polynomials.
- * a3 is the highest degree and the function returns a list of all the zeros (possibly empty). *)
-let third_degree a3 a2 a1 a0 = []
-
-(* Returns the lowest positive value in a list. Returns something negative if there isn't one *)
-let rec best_value l = 
-        match l with
-        | a :: ll -> let b = best_value ll in
-                if a > 0. && a < b then a else b
-        | [] -> -1.
-
-(* Give the next time the ball will touch the ground.
- * Assumes constant negative acceleration of a *)
-let touch_ground y0 vy0 a =
-        let c2 = -0.5 *. a in
-        let c1 = vy0 in
-        let c0 = y0 in
-        let zeros = third_degree 0. c2 c1 c0 in
-        best_value zeros
-
-(* Gives the next time the ball will touch the plateform *)
-let intersect_platform x0 y0 vx0 vy0 xp1 yp1 xp2 yp2 a =
-        let a3 = a *. vx0 in
-        let a2 = 0.5 *. a *. (2. *. x0 -. xp1 -. xp2) +. 2. *. vy0 *. vx0 in
-        let a1 = vy0 *. (2. *. x0 -. xp1 -. xp2) +. vx0 *. (2. *. y0 -. yp1 -. yp2) in
-        let a0 = (y0 -. yp1) *. (x0 -. xp2) +. (y0 -. yp2) *. (x0 -. xp1) in
-        best_value (third_degree a3 a2 a1 a0)
-
 (* Computes the new speed of a ball after it bounced off a platerform *)
 let bounce_plateform vx vy xp1 yp1 xp2 yp2 =
         let yp = if xp2 > xp1 then yp2 -. yp1 else yp1 -. yp2 in (* The conditions looks like a typo. It is not. *)
@@ -37,4 +9,32 @@ let bounce_plateform vx vy xp1 yp1 xp2 yp2 =
         let vyt = vy *. ypn in
         (vxt -. vx, vyt -. vy)
 
-        
+let bounce_plat_vect speed plat1 plat2 = 
+        let vx = Gg.x speed in
+        let vy = Gg.y speed in
+        let xp1 = Gg.x plat1 in
+        let yp1 = Gg.y plat1 in
+        let xp2 = Gg.x plat2 in
+        let yp2 = Gg.y plat2 in
+        match bounce_plateform vx vy xp1 yp1 xp2 yp2 with
+        (v1, v2) -> Gg.v v1 v2
+
+let step pos speed accel timestep = 
+        let pos = pos + Gg.smul timestep speed in
+        let speed = speed + Gg.smul timestep accel in
+       (pos, speed)
+
+(* Detects colision with a platform *)
+let touch pos plat1 plat2 =
+        let vec1 = Gg.sub plat1 pos in
+        let vec2 = Gg.sub plat1 plat2 in
+        let norma_vec1 = let n = Gg.norm vec1 in Gg.smul (1 /. n) vec1 in
+        let norma_vec2 = let n = Gg.norm vec2 in Gg.smul (1 /. n) vec2 in
+        let dot_prod = Gg.dot norma_vec1 norma_vec2 in
+        let vec3 = Gg.sub plat2 pos in
+        dot_prod > 0.9 && Gg.dot vec1 vec3 < 0. (* Detect both a flat angle and that we are "between" the two extremities *)
+
+let touch_ground pos = Gg.y pos < 0.
+
+
+
